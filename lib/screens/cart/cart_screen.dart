@@ -10,6 +10,32 @@ class CartScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final cartProvider = context.watch<CartProvider>();
 
+    Future<void> _confirmClearCart() async {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Xóa giỏ hàng'),
+          content: const Text('Bạn có chắc muốn xóa toàn bộ giỏ hàng?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Hủy'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Xóa'),
+            ),
+          ],
+        ),
+      );
+      if (confirmed == true) {
+        cartProvider.clearCart();
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Giỏ hàng đã được xóa')));
+      }
+    }
+
     return Scaffold(
       appBar: AppBar(title: const Text('Giỏ hàng')),
       body: cartProvider.items.isEmpty
@@ -95,26 +121,51 @@ class CartScreen extends StatelessWidget {
                       top: BorderSide(color: Colors.black12),
                     ),
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  child: Column(
                     children: [
-                      Text(
-                        'Tổng: ${cartProvider.totalPrice.toVnd()}',
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      ElevatedButton(
-                        onPressed: () {
-                          cartProvider.clearCart();
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Thanh toán thành công'),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton.icon(
+                              onPressed: _confirmClearCart,
+                              icon: const Icon(
+                                Icons.delete_forever,
+                                color: Colors.red,
+                              ),
+                              label: const Text(
+                                'Xóa giỏ hàng',
+                                style: TextStyle(color: Colors.red),
+                              ),
                             ),
-                          );
-                        },
-                        child: const Text('Thanh toán'),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: ElevatedButton(
+                              onPressed: () {
+                                cartProvider.clearCart();
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Thanh toán thành công'),
+                                  ),
+                                );
+                              },
+                              child: const Text('Thanh toán'),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Tổng: ${cartProvider.totalPrice.toVnd()}',
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),

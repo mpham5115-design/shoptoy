@@ -42,8 +42,15 @@ class _LoginScreenState extends State<LoginScreen> {
                 label: 'Email',
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
-                validator: (value) =>
-                    (value?.isEmpty ?? true) ? 'Nhập email' : null,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Nhập email';
+                  }
+                  if (!value.trim().toLowerCase().endsWith('@gmail.com')) {
+                    return 'Email phải là @gmail.com';
+                  }
+                  return null;
+                },
               ),
               const SizedBox(height: 12),
               InputField(

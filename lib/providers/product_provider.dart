@@ -12,6 +12,19 @@ class ProductProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void updateProduct(ProductModel product) {
+    final index = _products.indexWhere((item) => item.id == product.id);
+    if (index >= 0) {
+      _products[index] = product;
+      notifyListeners();
+    }
+  }
+
+  void removeProduct(int id) {
+    _products.removeWhere((product) => product.id == id);
+    notifyListeners();
+  }
+
   ProductModel? getById(int id) {
     final matches = _products.where((product) => product.id == id);
     return matches.isEmpty ? null : matches.first;

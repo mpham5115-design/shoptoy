@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../models/product_model.dart';
@@ -6,7 +8,9 @@ import '../../widgets/custom_button.dart';
 import '../../widgets/input_field.dart';
 
 class AddProductScreen extends StatefulWidget {
-  const AddProductScreen({super.key});
+  final ProductModel? product;
+
+  const AddProductScreen({super.key, this.product});
 
   @override
   State<AddProductScreen> createState() => _AddProductScreenState();
@@ -20,11 +24,30 @@ class _AddProductScreenState extends State<AddProductScreen> {
   final _stockController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
 
+  @override
+  void initState() {
+    super.initState();
+    final product = widget.product;
+    if (product != null) {
+      _nameController.text = product.name;
+      _descriptionController.text = product.description;
+      _priceController.text = product.price.toString();
+      _imageController.text = product.imageUrl;
+      _stockController.text = product.stock.toString();
+    }
+  }
+
   void _saveProduct() {
     if (_formKey.currentState?.validate() ?? false) {
       final provider = context.read<ProductProvider>();
+      final isEditing = widget.product != null;
+      final id = isEditing
+          ? widget.product!.id
+          : (provider.products.isEmpty
+                ? 1
+                : provider.products.map((item) => item.id).reduce(max) + 1);
       final newProduct = ProductModel(
-        id: provider.products.length + 1,
+        id: id,
         name: _nameController.text,
         description: _descriptionController.text,
         price: double.parse(_priceController.text),
@@ -32,17 +55,23 @@ class _AddProductScreenState extends State<AddProductScreen> {
             ? 'https://images.unsplash.com/photo-1542291026-7eec264c27ff'
             : _imageController.text,
         stock: int.parse(_stockController.text),
-        categoryId: 1,
+        categoryId: widget.product?.categoryId ?? 1,
       );
-      provider.addProduct(newProduct);
+      if (isEditing) {
+        provider.updateProduct(newProduct);
+      } else {
+        provider.addProduct(newProduct);
+      }
       Navigator.pop(context);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final isEditing = widget.product != null;
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Thêm sản phẩm')),
+      appBar: AppBar(title: Text(isEditing ? 'Sửa sản phẩm' : 'Thêm sản phẩm')),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Form(
@@ -87,7 +116,10 @@ class _AddProductScreenState extends State<AddProductScreen> {
                   validator: (value) => null,
                 ),
                 const SizedBox(height: 24),
-                CustomButton(label: 'Lưu sản phẩm', onPressed: _saveProduct),
+                CustomButton(
+                  label: isEditing ? 'Cập nhật sản phẩm' : 'Lưu sản phẩm',
+                  onPressed: _saveProduct,
+                ),
               ],
             ),
           ),
